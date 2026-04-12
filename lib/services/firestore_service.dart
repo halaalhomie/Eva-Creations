@@ -98,21 +98,16 @@ class FirestoreService {
     final salesRef = db.collection('sales').doc(today);
     final productRef = db.collection('products').doc(product.id);
 
-    await db.runTransaction((transaction) async {
-      final freshProductSnapshot = await transaction.get(productRef);
-      final freshProduct = Product.fromDocument(freshProductSnapshot);
+    final batch = db.batch();
 
-      if (freshProduct.quantity <= 0) {
-        throw StateError('out_of_stock');
-      }
+    batch.update(productRef, {'quantity': product.quantity - 1});
 
-      transaction.update(productRef, {'quantity': freshProduct.quantity - 1});
+    batch.set(salesRef, {
+      'revenue': FieldValue.increment(product.price),
+      'profit': FieldValue.increment(product.price - product.cost),
+    }, SetOptions(merge: true));
 
-      transaction.set(salesRef, {
-        'revenue': FieldValue.increment(freshProduct.price),
-        'profit': FieldValue.increment(freshProduct.price - freshProduct.cost),
-      }, SetOptions(merge: true));
-    });
+    await batch.commit();
 
     return SaleResult(status: SaleStatus.success, product: product);
   }
