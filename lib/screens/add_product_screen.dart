@@ -236,6 +236,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               quantity: quantity,
               category: category.isEmpty ? 'General' : category,
               barcode: barcode,
+              createdAt: DateTime.now(),
             ),
           )
           .timeout(const Duration(seconds: 4));

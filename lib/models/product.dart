@@ -9,6 +9,7 @@ class Product {
     required this.quantity,
     required this.category,
     required this.barcode,
+    this.createdAt,
   });
 
   final String id;
@@ -18,6 +19,7 @@ class Product {
   final int quantity;
   final String category;
   final String barcode;
+  final DateTime? createdAt;
 
   bool get isLowStock => quantity <= 5;
 
@@ -31,6 +33,7 @@ class Product {
     int? quantity,
     String? category,
     String? barcode,
+    DateTime? createdAt,
   }) {
     return Product(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class Product {
       quantity: quantity ?? this.quantity,
       category: category ?? this.category,
       barcode: barcode ?? this.barcode,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -51,11 +55,14 @@ class Product {
       'quantity': quantity,
       'category': category,
       'barcode': barcode,
+      'createdAt': createdAt == null ? null : Timestamp.fromDate(createdAt!),
     };
   }
 
   factory Product.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
+
+    final createdAtRaw = data['createdAt'];
 
     return Product(
       id: doc.id,
@@ -65,6 +72,11 @@ class Product {
       quantity: ((data['quantity'] ?? 0) as num).toInt(),
       category: (data['category'] ?? 'General') as String,
       barcode: (data['barcode'] ?? '') as String,
+      createdAt: switch (createdAtRaw) {
+        Timestamp timestamp => timestamp.toDate(),
+        DateTime dateTime => dateTime,
+        _ => null,
+      },
     );
   }
 }
